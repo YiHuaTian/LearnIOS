@@ -10,6 +10,7 @@
 
 @interface ViewController ()
 @property (nonatomic, strong) UIImageView *imageView;
+@property (nonatomic, strong) NSThread *thread;
 @end
 
 @implementation ViewController
@@ -29,6 +30,7 @@
 //    NSRunLoop *runloop = [NSRunLoop currentRunLoop];
 //    NSLog(@"%@",runloop);
     [self observer];
+    [self performSelectorTest];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -39,6 +41,32 @@
 {
     // 只在NSDefaultRunLoopMode模式下显示图片
     [self.imageView performSelector:@selector(setImage:) withObject:[UIImage imageNamed:@"placeholder"] afterDelay:3.0 inModes:@[NSDefaultRunLoopMode]];
+}
+
+- (void)performSelectorTest {
+    NSThread *thread = [[NSThread alloc] initWithTarget:self selector:@selector(run) object:nil];
+    self.thread = thread;
+    [thread start];
+    
+}
+
+- (void)run {
+//    [self performSelector:@selector(test) onThread:self.thread withObject:nil waitUntilDone:YES modes:@[NSDefaultRunLoopMode]];
+
+    [self performSelector:@selector(test) withObject:nil afterDelay:2.0];
+
+    NSRunLoop *runloop = [NSRunLoop currentRunLoop];
+    [runloop addPort:[NSPort port] forMode:NSDefaultRunLoopMode];
+    [runloop run];
+}
+
+- (void)test {
+    NSLog(@"-----------------");
+}
+
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    [self performSelector:@selector(test) onThread:self.thread withObject:nil waitUntilDone:NO];
 }
 
 - (void)observer {
